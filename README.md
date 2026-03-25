@@ -19,7 +19,7 @@ Saves the selected frame as a PNG with no re-encoding
 
 Keeps original resolution and aspect ratio perfectly intact
 
-<img src="app.png" width="200" >
+<img src="app.jpeg" width="700" >
 
 
 🧠 AI Video Use Cases
