@@ -19,7 +19,7 @@ Saves the selected frame as a PNG with no re-encoding
 
 Keeps original resolution and aspect ratio perfectly intact
 
-video_name_frame_142.png
+<img src="assets/ss1.png" width="200" >
 
 
 🧠 AI Video Use Cases
@@ -74,12 +74,22 @@ TkinterDnD2
 
 📦 Installation
 
-pip install opencv-python customtkinter tkinterdnd2 Pillow
+
+```bash
+# Clone the repository
+git clone https://github.com/ibodeth/FrameExtractor.git
+
+# Go to project directory
+cd FrameExtractor
+```
 
 
 ▶️ Run
 
+
+```bash
 python main.py
+```
 
 
 Drop a video file into the window, use the slider to find your desired frame, and click "Save Selected Frame".
