@@ -272,16 +272,24 @@ class App(TkinterDnD.Tk):
         threading.Thread(target=self.tray_icon.run, daemon=True).start()
 
     def _restore_from_tray(self, icon=None, tray_item=None):
+        self.after(0, self._show_window)
+
+    def _show_window(self):
         if self.tray_icon is not None:
             self.tray_icon.stop()
             self.tray_icon = None
-        self.after(0, self.deiconify)
+        self.deiconify()
+        self.lift()
+        self.focus_force()
 
     def _quit_from_tray(self, icon=None, tray_item=None):
+        self.after(0, self._quit_app)
+
+    def _quit_app(self):
         if self.tray_icon is not None:
             self.tray_icon.stop()
             self.tray_icon = None
-        self.after(0, self.on_closing)
+        self.on_closing()
 
     def on_closing(self):
         if self.cap is not None:
