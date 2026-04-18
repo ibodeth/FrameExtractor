@@ -1,0 +1,79 @@
+name: Build & Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Convert icon to ICO
+        shell: python
+        run: |
+          from PIL import Image
+          img = Image.open("app.jpeg").resize((256, 256))
+          img.save("app.ico", format="ICO", sizes=[(256,256),(64,64),(32,32),(16,16)])
+
+      - name: Build exe with PyInstaller
+        run: >
+          pyinstaller
+          --onefile
+          --windowed
+          --name "FrameExtractor"
+          --add-data "app.jpeg;."
+          --icon "app.ico"
+          --hidden-import pystray._win32
+          --hidden-import PIL._tkinter_finder
+          main.py
+
+      - name: Get short SHA
+        id: sha
+        shell: bash
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v1.0-${{ steps.sha.outputs.short }}"
+          name: "Frame Extractor v1.0-${{ steps.sha.outputs.short }}"
+          body: |
+            ## 🎞️ Frame Extractor
+
+            ### Yenilikler
+            - **Simge durumuna küçültme**: `—` butonuna basarak uygulamayı sistem tepsisine küçültebilirsiniz.
+            - Tepsi simgesine çift tıklayarak veya **Aç** seçeneğiyle uygulamayı geri açabilirsiniz.
+
+            ### Kurulum
+            `FrameExtractor.exe` dosyasını indirip çalıştırın — ek kurulum gerekmez.
+
+            ### Kullanım
+            1. Uygulamayı açın.
+            2. Video dosyasını (mp4, mov, avi, mkv) sürükleyip bırakın.
+            3. Kaydırıcıyla istediğiniz kareye gidin.
+            4. **📸 Seçili Kareyi Kaydet** butonuna basın.
+            5. `—` butonuyla arka planda çalışmaya devam edebilirsiniz.
+
+            > **Commit:** ${{ github.sha }}
+          files: dist/FrameExtractor.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,8 +1,12 @@
 import os
+import sys
+import threading
 import cv2
 import customtkinter as ctk
 from tkinterdnd2 import TkinterDnD, DND_FILES
 from PIL import Image
+import pystray
+from pystray import MenuItem as item
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
@@ -54,6 +58,22 @@ class App(TkinterDnD.Tk):
             command=self.on_closing
         )
         self.close_btn.place(relx=0.95, rely=0.04, anchor="center")
+
+        self.minimize_btn = ctk.CTkButton(
+            self.main_frame,
+            text="—",
+            width=40,
+            height=40,
+            fg_color="transparent",
+            hover_color="#2c3e50",
+            text_color="white",
+            font=("Arial", 16, "bold"),
+            corner_radius=20,
+            command=self.minimize_to_tray
+        )
+        self.minimize_btn.place(relx=0.89, rely=0.04, anchor="center")
+
+        self.tray_icon = None
 
         self.title_label = ctk.CTkLabel(
             self.main_frame,
@@ -230,6 +250,38 @@ class App(TkinterDnD.Tk):
             text=f"✅ Kaydedildi: {filename}",
             text_color="#2ecc71"
         )
+
+    def minimize_to_tray(self):
+        self.withdraw()
+        if self.tray_icon is None:
+            self._start_tray_icon()
+
+    def _start_tray_icon(self):
+        resource_dir = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        icon_path = os.path.join(resource_dir, "app.jpeg")
+        try:
+            icon_image = Image.open(icon_path).resize((64, 64))
+        except (FileNotFoundError, IOError, OSError):
+            icon_image = Image.new("RGB", (64, 64), color=(26, 26, 26))
+
+        menu = pystray.Menu(
+            item("Aç", self._restore_from_tray, default=True),
+            item("Kapat", self._quit_from_tray)
+        )
+        self.tray_icon = pystray.Icon("FrameExtractor", icon_image, "Frame Extractor", menu)
+        threading.Thread(target=self.tray_icon.run, daemon=True).start()
+
+    def _restore_from_tray(self, icon=None, tray_item=None):
+        if self.tray_icon is not None:
+            self.tray_icon.stop()
+            self.tray_icon = None
+        self.after(0, self.deiconify)
+
+    def _quit_from_tray(self, icon=None, tray_item=None):
+        if self.tray_icon is not None:
+            self.tray_icon.stop()
+            self.tray_icon = None
+        self.after(0, self.on_closing)
 
     def on_closing(self):
         if self.cap is not None:

@@ -1,0 +1,6 @@
+customtkinter
+tkinterdnd2
+opencv-python
+Pillow
+pystray
+pyinstaller
